@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>
+            Tweet Spam Detector
+        </title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+        <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+        <link href='http://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+        <link href="src/index.css" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        
+    </head>
+
+    <body>
+        <ul class="navigation-bar">
+            <li class="title"><p class = "active" style="text-decoration:none">Tweet Spam Detector</p></li>
+            <li class="about-us"><button class="about-us-button">About Us</button></li>
+            <script>
+                $(".about-us-button").button().click(function() {
+                    swal({
+                        title: "About Us",
+                        text: "Erma Safira Nurmasyita - 13516072\nM Alif Arifin - 13516078\nDeborah Aprilia - 13516152",
+                        confirm : "Close",
+                    });
+                });
+            </script>>
+        </ul>
+        <div class="sidebar">
+            <form method="POST" id="formSubmit">
+                <div class="algoritma w3-animate-top">
+                    <label class="button-algoritma"> KMP
+                        <input type="radio" name="algoritma" id="kmp-button" value=1 checked="checked">
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="button-algoritma"> BM
+                        <input type="radio" name="algoritma" id="bm-button" value=2>
+                        <span class="checkmark"></span>
+                    </label>
+                    <label class="button-algoritma"> RE
+                        <input type="radio" name="algoritma" id="re-button" value=3>
+                        <span class="checkmark"></span>
+                    </label>
+                </div>
+                
+                <div class="algoritma" id="algoritma-text-box">                     
+                    <div class="show-algoritma">
+                        <h2 id="algorithm-title">
+                            Knuth-Morris-Pratt
+                        </h2>
+                    </div>
+                </form> 
+                <label id="label-keyword-form">
+                    <span id="keyword-or-expression">
+                        Keyword:
+                    </span>
+                    <span id="info-keyword-or-expression">
+                        Seperate keyword with "," (comma)
+                    </span>
+                    <textarea rows="1" cols="40" name="keyword" placeholder="Input keyword . . ." class="keyword-form" id="keyword-input-form" form="formSubmit"></textarea>
+                </label>
+                <script>
+                    $('textarea').each(function () {
+                        this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+                        }).on('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                    });
+                </script>
+                <script>
+                    $('input:radio[name="algoritma"]').change(function(){
+                        if ($(this).val() == 1) {
+                            document.getElementById("keyword-or-expression").textContent = "Keyword:";
+                            document.getElementById("algorithm-title").textContent = "Knuth-Morris-Pratt";
+                            document.getElementById("info-keyword-or-expression").textContent = "Seperate keyword with \",\" (comma)";
+                            document.getElementsByName('keyword')[0].placeholder='Input keyword . . .';
+                        } else if ($(this).val() == 2) {
+                            document.getElementById("keyword-or-expression").textContent = "Keyword:";
+                            document.getElementById("algorithm-title").textContent = "Boyer-Moore";
+                            document.getElementById("info-keyword-or-expression").textContent = "Seperate keyword with \",\" (comma)";
+                            document.getElementsByName('keyword')[0].placeholder='Input keyword . . .';
+                        } else if ($(this).val() == 3) {
+                            document.getElementById("keyword-or-expression").textContent = "Expression:";
+                            document.getElementById("algorithm-title").textContent = "Regular Expression";
+                            document.getElementById("info-keyword-or-expression").textContent = "";
+                            document.getElementsByName('keyword')[0].placeholder='Input expression . . .';
+                        }
+                    });
+                </script>
+                <div class="submit-button-div">
+                    <button type="submit" value="Search" id="submit-button" form="formSubmit" onsubmit="return false">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>  
+
+        <div class="tweet-bar">
+            <?php 
+                if (isset($_POST["algoritma"]) && isset($_POST["keyword"])) {
+                    ini_set('max_execution_time', 300);
+                    $str = "python src/main.py \"" . $_POST["keyword"] . "\" " . $_POST["algoritma"];
+                    $json = shell_exec($str);
+                    $json_data = json_decode($json);
+                    for ($i = 0 ; $i < count($json_data) ; $i++){
+                        $data = $json_data[$i];			
+                        if ($data->IS_SPAM == 1){
+                            echo "<div class=\"box-tweet\" style=\"background-color:#FFC09F\">";
+                        }
+                        else {
+                            echo "<div class=\"box-tweet\" style=\"background-color:#A9D3FF\">";        
+                        }
+                            $image = $data->user->profile_image_url_https;
+                            $imageData = base64_encode(file_get_contents($image));
+                            echo "<table>";
+                                echo "<tr>";
+                                    echo "<th class=\"picture\">";
+                                        echo '<img src="data:image/jpeg;base64,'.$imageData.'" alt>';
+                                    echo "</th>";
+                                    echo "<th class=\"tweet-isi\">";
+                                        echo "<span class=\"full-name\">";
+                                            echo "<a class=\"link-user-name\" href=\"https://twitter.com/".$data->user->screen_name."\" target=\"_blank\">";
+                                                echo $data->user->name;
+                                            echo "</a>";
+                                        echo "</span>";
+                                        echo "<span class=\"user-name\">";
+                                            echo "   @";
+                                            echo $data->user->screen_name;
+                                        echo "</span>";
+                                        echo "<br>";
+
+                                        echo "<span class=\"tweets\">";
+                                        echo nl2br($data->full_text."\n");                                    
+                                            
+                                        echo "</span>";
+                                        echo "<br>";
+                                        echo "<span class=\"date\">";
+                                            echo $data->created_at;
+                                        echo "</span>";
+                                    echo "</th>";                    
+                                echo "</tr>";
+                            echo "</table>";
+                        echo "</div>";                    
+                    }
+                }
+            ?>
+        </div>
+        <!-- Block animation -->
+        <script>
+            $(document).ready(function(){
+                $('input:radio[name="algoritma"]').change(function(){
+                    $("#algoritma-text-box").animate({
+                        bottom: '100px'
+                    });
+                    document.getElementById("algoritma-text-box").style.display = 'block';                    
+                    $("#algoritma-text-box").animate({
+                        top: '10px'
+                    });
+                });
+            });
+        </script>
+    </body>    
+</html>
